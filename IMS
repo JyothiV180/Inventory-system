@@ -1,0 +1,142 @@
+class GroceryShop:
+    def __init__(self, inventory):
+        self.inventory = inventory
+
+    def display_inventory(self):
+        print("\nCurrent Inventory:")
+        for category, items in self.inventory.items():
+            print(f"\n{category}:")
+            for item, details in items.items():
+                print(f"  {item}: {details['stock']} {details['unit']} @ ₹{details['price']}/{details['unit']}")
+        print("-" * 40)
+
+    def place_order(self):
+        order = {}
+        print("\nPlace Your Order (Type 'done' to finish):")
+        while True:
+            item_name = input("Enter item name: ").strip()
+            if item_name.lower() == "done":
+                break
+            quantity = input("Enter quantity: ").strip()
+
+            if not quantity.isdigit() or int(quantity) <= 0:
+                print("Invalid quantity. Please enter a positive number.")
+                continue
+
+            quantity = int(quantity)
+            item_found = False
+
+            for category, items in self.inventory.items():
+                if item_name in items:
+                    item_found = True
+                    item_details = items[item_name]
+
+                    if quantity > item_details["stock"]:
+                        print(f"Only {item_details['stock']} {item_details['unit']} of {item_name} available. Adjusting order.")
+                        quantity = item_details["stock"]
+
+                    order[item_name] = {
+                        "quantity": quantity,
+                        "price": item_details["price"],
+                        "unit": item_details["unit"],
+                        "subtotal": quantity * item_details["price"]
+                    }
+
+                    item_details["stock"] -= quantity
+                    print(f"Added {quantity} {item_details['unit']} of {item_name} to your order.")
+                    break
+
+            if not item_found:
+                print(f"{item_name} is not available in the inventory. Please try again.")
+        return order
+
+    def generate_invoice(self, order):
+        print("\nOrder Summary:")
+        total_cost = 0
+        weight_volume_summary = {"kg": 0, "liter": 0, "piece": 0, "dozen": 0, "pack": 0, "bunch": 0, "cup": 0, "box": 0, "bar": 0}
+
+        for item, details in order.items():
+            total_cost += details["subtotal"]
+            if details["unit"] in weight_volume_summary:
+                weight_volume_summary[details["unit"]] += details["quantity"]
+            print(f"{item}: {details['quantity']} {details['unit']} × ₹{details['price']}/{details['unit']} = ₹{details['subtotal']}")
+
+        print("\nTotal Quantities:")
+        for unit, total in weight_volume_summary.items():
+            if total > 0:
+                print(f"  {unit}: {total}")
+
+        print("\nTotal Cost: ₹", total_cost)
+        print("-" * 40)
+
+    def low_stock_warning(self):
+        print("\nLow Stock Warning:")
+        low_stock_items = []
+        for category, items in self.inventory.items():
+            for item, details in items.items():
+                if details["stock"] < 5:
+                    low_stock_items.append((item, details["stock"], details["unit"]))
+        if low_stock_items:
+            for item, stock, unit in low_stock_items:
+                print(f"{item}: Only {stock} {unit} left!")
+        else:
+            print("No low-stock items.")
+        print("-" * 40)
+
+
+# Initialize Inventory
+inventory_data = {
+    "Fruits": {
+        "Apple": {"unit": "kg", "stock": 50, "price": 150},
+        "Banana": {"unit": "dozen", "stock": 30, "price": 50},
+        "Orange": {"unit": "kg", "stock": 40, "price": 120},
+        "Grapes": {"unit": "kg", "stock": 20, "price": 180},
+        "Mango": {"unit": "piece", "stock": 25, "price": 30}
+    },
+    "Vegetables": {
+        "Potato": {"unit": "kg", "stock": 100, "price": 25},
+        "Onion": {"unit": "kg", "stock": 80, "price": 35},
+        "Carrot": {"unit": "kg", "stock": 60, "price": 60},
+        "Spinach": {"unit": "bunch", "stock": 50, "price": 20},
+        "Cucumber": {"unit": "piece", "stock": 30, "price": 15}
+    },
+    "Grains": {
+        "Rice": {"unit": "kg", "stock": 200, "price": 50},
+        "Wheat Flour": {"unit": "kg", "stock": 150, "price": 40},
+        "Lentils": {"unit": "kg", "stock": 100, "price": 90},
+        "Chickpeas": {"unit": "kg", "stock": 80, "price": 100},
+        "Oats": {"unit": "kg", "stock": 50, "price": 150}
+    },
+    "Dairy": {
+        "Milk": {"unit": "liter", "stock": 100, "price": 60},
+        "Yogurt": {"unit": "cup", "stock": 75, "price": 20},
+        "Cheese": {"unit": "kg", "stock": 20, "price": 500},
+        "Butter": {"unit": "pack", "stock": 40, "price": 200},
+        "Cream": {"unit": "liter", "stock": 30, "price": 250}
+    },
+    "Packaged Foods": {
+        "Biscuits": {"unit": "pack", "stock": 60, "price": 30},
+        "Chips": {"unit": "pack", "stock": 50, "price": 20},
+        "Pasta": {"unit": "pack", "stock": 40, "price": 80},
+        "Cereal": {"unit": "box", "stock": 30, "price": 200},
+        "Chocolate": {"unit": "bar", "stock": 80, "price": 20}
+    }
+}
+
+# Create Grocery Shop
+shop = GroceryShop(inventory_data)
+
+# Display Inventory
+shop.display_inventory()
+
+# Place Order
+order = shop.place_order()
+
+# Generate Invoice
+shop.generate_invoice(order)
+
+# Show Low Stock Warnings
+shop.low_stock_warning()
+
+# Display Updated Inventory
+shop.display_inventory()
